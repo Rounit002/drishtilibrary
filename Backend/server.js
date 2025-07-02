@@ -35,7 +35,7 @@ app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:8080',
-      'https://sdmlibraries.onrender.com',
+      'https://drishtilibrary.onrender.com',
       'file://'
     ];
     if (!origin || allowedOrigins.includes(origin)) {
