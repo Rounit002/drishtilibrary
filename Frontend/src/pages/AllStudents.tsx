@@ -1,4 +1,3 @@
-// src/pages/AllStudents.tsx
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -35,7 +34,8 @@ const AllStudents = () => {
   const [studentsPerPage, setStudentsPerPage] = useState(10);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortColumn, setSortColumn] = useState<'createdAt' | 'registrationNumber'>('registrationNumber');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
 
@@ -81,8 +81,13 @@ const AllStudents = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedBranchId, fromDate, toDate]);
 
-  const handleSort = () => {
-    setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+  const handleSort = (column: 'createdAt' | 'registrationNumber') => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection(column === 'registrationNumber' ? 'asc' : 'desc');
+    }
   };
 
   const handleStatusToggle = async (id: number, currentStatus: boolean) => {
@@ -100,12 +105,22 @@ const AllStudents = () => {
   };
   
   const sortedStudents = [...students].sort((a, b) => {
+  if (sortColumn === 'registrationNumber') {
+    const regA = a.registrationNumber || '';
+    const regB = b.registrationNumber || '';
+    if (regA === '' && regB !== '') return 1; // Place a after b
+    if (regA !== '' && regB === '') return -1; // Place a before b
+    return sortDirection === 'asc' 
+      ? regA.localeCompare(regB, undefined, { numeric: true, sensitivity: 'base' })
+      : regB.localeCompare(regA, undefined, { numeric: true, sensitivity: 'base' });
+  } else {
     const dateA = new Date(a.createdAt);
     const dateB = new Date(b.createdAt);
     const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
     const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
     return sortDirection === 'asc' ? timeA - timeB : timeB - timeA;
-  });
+  }
+});
 
   const filteredStudents = sortedStudents.filter((student: Student) =>
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,13 +209,17 @@ const AllStudents = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Registration</TableHead>
+                      <TableHead>
+                        <button className="flex items-center gap-1" onClick={() => handleSort('registrationNumber')}>
+                          Registration {sortColumn === 'registrationNumber' && (sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />)}
+                        </button>
+                      </TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Seat</TableHead>
                       <TableHead>
-                        <button className="flex items-center gap-1" onClick={handleSort}>
-                          Added On {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                        <button className="flex items-center gap-1" onClick={() => handleSort('createdAt')}>
+                          Added On {sortColumn === 'createdAt' && (sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />)}
                         </button>
                       </TableHead>
                       <TableHead>Action</TableHead>

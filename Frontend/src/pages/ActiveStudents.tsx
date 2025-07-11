@@ -53,7 +53,12 @@ const ActiveStudents = () => {
           };
         });
         const activeStudents = updatedStudents.filter((student: Student) => student.status === 'active');
-        setStudents(activeStudents);
+        const sortedActiveStudents = activeStudents.sort((a, b) => {
+          const regA = a.registrationNumber || '';
+          const regB = b.registrationNumber || '';
+          return regA.localeCompare(regB, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        setStudents(sortedActiveStudents);
         setLoading(false);
       } catch (error: any) {
         console.error('Failed to fetch active students:', error.message);
@@ -79,7 +84,7 @@ const ActiveStudents = () => {
   const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
-  const handleDelete = async (id: number) => { // Fixed: id type to number
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
         await api.deleteStudent(id);
@@ -92,13 +97,13 @@ const ActiveStudents = () => {
     }
   };
 
-  const handleViewDetails = (id: number) => { // Fixed: id type to number
+  const handleViewDetails = (id: number) => {
     navigate(`/students/${id}`);
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} /> {/* Added props */}
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
         <div className="flex-1 overflow-y-auto p-6">
@@ -117,7 +122,7 @@ const ActiveStudents = () => {
                     placeholder="Search students..."
                     className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-purple-300"
                     value={searchTerm}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} // Added type
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
@@ -189,7 +194,7 @@ const ActiveStudents = () => {
                   <div className="flex items-center space-x-2">
                     <select
                       value={studentsPerPage}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { // Added type
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                         setStudentsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}

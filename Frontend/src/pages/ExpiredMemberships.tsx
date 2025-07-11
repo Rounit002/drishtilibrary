@@ -103,6 +103,15 @@ const ExpiredMemberships = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Function to sort students by registration number in ascending order
+  const sortStudents = (students: Student[]) => {
+    return [...students].sort((a, b) => {
+      const regA = a.registrationNumber || '';
+      const regB = b.registrationNumber || '';
+      return regA.localeCompare(regB);
+    });
+  };
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -113,7 +122,7 @@ const ExpiredMemberships = () => {
           api.getBranches(),
         ]);
 
-        setStudents(studentsResp.students);
+        setStudents(sortStudents(studentsResp.students));
         setShiftOptions(shiftsResp.schedules.map((shift: any) => ({ value: shift.id, label: shift.title })));
         setBranchOptions(branchesResp.map((branch: any) => ({ value: branch.id, label: branch.name })));
       } catch (e: any) {
@@ -237,7 +246,7 @@ const ExpiredMemberships = () => {
       setRenewDialogOpen(false);
 
       const resp = await api.getExpiredMemberships();
-      setStudents(resp.students);
+      setStudents(sortStudents(resp.students));
 
     } catch (err: any) {
       console.error('Renew error:', err.response?.data || err.message);
